@@ -1,172 +1,131 @@
-# Dependency Injection (Bağımlılık Enjeksiyonu) Nedir?
-Dependency Injection, yazılım geliştirme sırasında bir sınıfın ihtiyaç duyduğu bağımlılıkları (dependencies) dışarıdan almasını sağlayan bir tasarım desenidir. Bu desen, kodun daha esnek, modüler ve kolay test edilebilir olmasını sağlar.
+Dependency Injection (Bağımlılık Enjeksiyonu), yazılım geliştirme sırasında bir sınıfın ihtiyaç duyduğu bağımlılıkları (dependencies) dışarıdan almasını sağlayan bir tasarım desenidir. Bu desen, kodun daha esnek, daha modüler ve daha kolay test edilebilir olmasını sağlar.
 
-Dependency Injection'ı, **"sayfalar arası sınıf transferi"** gibi düşünebiliriz.
+Sayfalar arası sınıf transferi gibi düşünebiliriz.
+----------------------------------------------------------------------------------------------
+Infastructor adında bir klasör oluşturdum.
+içinde Helper.cs adında bir dosya açtim
+   
+    public interface IHelper 
+    interfacei olusturdum
 
----
-
-## Proje Adımları
-
-### 1. Infrastructure Klasörü ve Helper.cs Dosyası
-- **Infrastructure** adında bir klasör oluşturuldu.
-- Bu klasör içerisinde **Helper.cs** dosyası açıldı ve aşağıdaki kodlar yazıldı:
-
-```csharp
-public interface IHelper
-{
-    string SayHello();
-}
-
-public class Helper : IHelper
-{
-    public string SayHello()
-    {
+    public class Helper :IHelper{
+        
+        public string SayHello(){
         return "Hello";
+        }
     }
-}
-```
+    altına bunu ekledim
+----------------------------------------------------------------------------------------------
+Home controllerda her defasında newlememek ıcın program cs e 
+newlemek istedigim sınıfın ınterface ı ve meototunu verdim.
+----------------------------------------------------------------------------------------------
+Program.cs e 
+    // DEpendency Injection ile, nesne örnepini kullanacağımız sınıfı ve interface'i verdik!!
+    // Action içerisinde bu helper sınıfını kullanalım!!
+        builder.Services.AddScoped<IHelper,Helper>();
+        builder.Services.AddScoped<IPayment,Payment>();
 
----
+farklı bunlar, bunları ekledim.
+payment daha sonra olusturuldu.
+----------------------------------------------------------------------------------------------
+Home controllera gittim 
+    
+    Ihelper tıpınde  (interface tıpınde) bir degisken aldım 
+    public IHelper _helper;
 
-### 2. Program.cs Dosyasına Dependency Injection Tanımlamaları
+    ctor yazdım içine interface veya degısken al
+    
+    public HomeController(IHelper helper){
+        _helper = helper
+        //mapping yaptım _helperi  helpera mapledim.
 
-Program.cs dosyasına aşağıdaki kodlar eklendi:
-
-```csharp
-// Dependency Injection ile, nesne örneğini kullanacağımız sınıfı ve interface'i tanımlıyoruz.
-builder.Services.AddScoped<IHelper, Helper>();
-builder.Services.AddScoped<IPayment, Payment>();
-```
-
-Burada:
-- `AddScoped<IHelper, Helper>()` ile `IHelper` interface'ini implement eden `Helper` sınıfı, Dependency Injection ile sisteme kayıt edildi.
-- Daha sonra **Payment** için aynı işlem gerçekleştirildi.
-
----
-
-### 3. HomeController Düzenlemeleri
-- **HomeController** içinde Dependency Injection kullanılarak `IHelper` interface'ini tanımlıyoruz.
-
-```csharp
-public class HomeController : Controller
-{
-    private readonly IHelper _helper;
-
-    public HomeController(IHelper helper)
-    {
-        _helper = helper; // Mapping işlemi
+        this._helper = helper 
+        da yapabilirim 
     }
+
 
     public IActionResult Index()
     {
-        string returnValue = _helper.SayHello();
+        string returnvalue= _helper.Sayhello()
         return View();
     }
-}
-```
 
-**Açıklamalar:**
-- `ctor` (constructor) ile `IHelper` tipi bir bağımlılığı (`helper`) içeri aldık.
-- `helper`'ı `_helper` değişkenine atadık (mapping).
-- **Dependency Injection sayesinde** `new` anahtar kelimesini kullanmadan `Helper` sınıfının bir örneğini (`instance`) oluşturduk.
+----------------------------------------------------------------------------------------------
+Interfacelerin ıcınde metot olmaz.!!
+İMZA OLUR SADECE 
 
----
+Interface'in Gövdesiz ve Gövdeli Hali
+Bir interface hem gövdesiz hem de gövdeli metotları birlikte barındırabilir:
 
-### 4. Interface'lerin Gövdesiz ve Gövdeli Halleri
-C# 8.0 ile birlikte interface'lerin içinde gövde içeren metotlar tanımlanabiliyor. Örneğin:
-
-```csharp
-public interface IHelper
-{
-    void SayHello(); // Gövdesiz metot (zorunlu uygulama)
-
-    public void SayGoodbye() // Gövdeli metot (isteğe bağlı)
+    public interface IHelper
     {
-        Console.WriteLine("Goodbye from Default Implementation!");
+        void SayHello(); // Gövdesiz (zorunlu uygulama)
+        
+        public void SayGoodbye() // Gövdeli (isteğe bağlı)
+        {
+            Console.WriteLine("Goodbye from Default Implementation!");
+        }
     }
-}
-```
 
----
+----------------------------------------------------------------------------------------------
+DependencyController olusturdum. 
 
-### 5. DependencyController Oluşturulması
-- Yeni bir **DependencyController** oluşturuldu.
-
-```csharp
-public class DependencyController : Controller
-{
-    private readonly IHelper _helper;
-
-    public DependencyController(IHelper helper)
+    public class DependencyController : Controller
     {
-        _helper = helper;
-    }
+
+        public IHelper _helper;
+        public DependencyController(IHelper helper)
+        {
+            _helper = helper;
+           
+        }
 
     public IActionResult Index()
     {
-        string returnValue = _helper.SayHello();
+        string returnvalue =  _helper.SayHello();
         return View();
     }
-}
-```
 
----
+ }
+----------------------------------------------------------------------------------------------
+View a depencency klasoru acıp ındex ıcıne vıew verdik. 
+----------------------------------------------------------------------------------------------
+Payment.cs açtım
+IPayment interfacei olusturdum  
 
-### 6. Payment.cs Dosyası
-- **IPayment** adında bir interface oluşturuldu ve `Payment` sınıfı tarafından implement edildi:
-
-```csharp
-public interface IPayment
-{
-    string Pay();
-}
-
-public class Payment : IPayment
-{
-    public string Pay()
-    {
-        return "Pay çalıştı";
+    public interface IPayment{
+    public string Pay();
     }
-}
-```
 
----
 
-### 7. DependencyController Geliştirilmesi
-- **DependencyController** sınıfına `IPayment` eklendi:
+    public class Payment : IPayment
+    {
+        public string Pay()
+        {
+            return "pay çalıştı";
+        }
+    }
 
-```csharp
-public class DependencyController : Controller
-{
-    private readonly IHelper _helper;
-    private readonly IPayment _payment;
+----------------------------------------------------------------------------------------------
+    
+DepencencyControllera Ekleme yaptık yazdıgımızı
 
     public DependencyController(IHelper helper, IPayment payment)
     {
         _helper = helper;
         _payment = payment;
     }
-
+    
     public IActionResult Index()
     {
         string returnValue = _helper.SayHello();
+
         string payReturnValue = _payment.Pay();
 
         return View();
     }
-}
-```
 
----
+----------------------------------------------------------------------------------------------
+// c# da yazılan her sınıfın bir interfacesi olması gerekmektedir. Ancak internfacesi olmasa da dependency injection olarak eklenebilir
 
-### 8. View Oluşturulması
-- **Views** klasörü altına `Dependency` adında bir klasör açıldı.
-- Bu klasör içine `Index.cshtml` dosyası eklendi ve ilgili View tanımlandı.
-
----
-
-## Sonuç
-- Dependency Injection ile sınıf bağımlılıkları dışarıdan alınarak kod daha temiz ve kolay yönetilebilir hale geldi.
-- `IHelper` ve `IPayment` gibi interface'ler sayesinde bağımlılıkları değiştirmek kolaylaştı.
-- View tarafında veriler işlenebilir hale geldi.
-
+    builder.Services.AddScoped(typeof(MakeJson));
